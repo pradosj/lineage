@@ -15,25 +15,53 @@ knitr::opts_chunk$set(
 ```
 
 
-```{r}
+```{r message=FALSE}
 library(lineage)
 library(tidyverse)
+```
 
+
+Generate a random dataset of 1000 cells and 10 cell-types
+
+```{r message=FALSE}
 set.seed(123)
 pseudotime <- runif(1000)
 identity_scores <- matrix(runif(10000),1000,dimnames=list(NULL,LETTERS[1:10]))
 ```
 
 
+Build fully connected lineage graph and fit linear models to the identity data along pseudotime
+
 ```{r}
 g <- lineage_graph_build(pseudotime,identity_scores)
-plot_lineage_graph(g)
+plot_lineage_graph(g) + coord_equal()
+```
+
+Show linear models fitting
+
+```{r fig.height=12, fig.width=12}
 plot_lineage_incidence_matrix(g,pseudotime,identity_scores)
 plot_lineage_incidence_matrix(g)
+```
+
+
+Prune the fully connected graph into a DAG by keeping one ancestor per celltype
+
+```{r}
 g <- lineage_graph_prune(g)
 plot_lineage_graph(g)
-lineage_coords(g,pseudotime,identity_scores) %>% ggplot() + geom_jitter(aes(x=pseudotime,y=lineage_label,color=identity_label))
+```
 
+Show lineages of each identity
+
+```{r}
+lineage_coords(g,pseudotime,identity_scores) %>% 
+	ggplot() + 
+	geom_jitter(aes(x=pseudotime,y=lineage_label,color=identity_label))
+```
+
+
+```{r}
 if (requireNamespace("ggridges", quietly = TRUE)) {
 	lineage_coords(g,pseudotime,identity_scores) %>% 
 		ggplot() + 
