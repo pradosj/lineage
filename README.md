@@ -20,7 +20,7 @@ devtools::install_github("BioinfoSupport/lineage/lineage")
 
 ``` r
 w <- lineage::orm_fit_pruned(assay(trn,"counts"),trn$timepoint,n=25,LAMBDA=1e-3)
-tst$orm_pred <- orm_predict(assay(tst,"counts"),w)
+tst$orm_pred <- lineage::orm_predict(assay(tst,"counts"),w)
 ```
 
 The above code shows how to fit an ORM model on a training set.
@@ -29,13 +29,13 @@ of the model and should be tuned for your data. Low `LAMBDA` tends to produce
 over-fitted models on the data, while high `LAMBDA` tends to produce 
 non-specific model. 
 
-After fitting, 25 genes with highest (resp. lowest) linear coefficients are kept 
-(controlled by parameter `n`), and a second normalization and fitting pass 
-is performed.
+Because `orm_fit_pruned` version is called here, after a first ORM fitting, 25 
+genes with highest (resp. lowest) linear coefficients are kept 
+(controlled by pruning parameter `n`). Then a second normalization and fitting pass 
+is performed by the function.
 
 
-
-## Lineage with 
+## Lineage analysis 
 
 ``` r
 library(lineage)
