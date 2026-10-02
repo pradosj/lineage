@@ -4,7 +4,7 @@
 \alias{orm_fit_pruned}
 \title{Two pass fitting of a ORM model with pruning}
 \usage{
-orm_fit_pruned(counts, ..., n = 10)
+orm_fit_pruned(counts, ..., n = 25L)
 }
 \arguments{
 \item{counts}{gene x sample expression matrix}

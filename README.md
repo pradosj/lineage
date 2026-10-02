@@ -19,20 +19,20 @@ devtools::install_github("BioinfoSupport/lineage/lineage")
 ## Pseudotime analysis with linear Ordinal Regression Model (ORM)
 
 ``` r
-library(lineage)
-library(tidyverse)
-
-# Build an gene expression matrix
-counts <- t(as.matrix(iris[1:4]))
-y <- iris$Species %>% fct_relevel("versicolor","virginica","setosa")
-
-# Fit an linear ORM model in 2 pass
-w <- orm_fit_pruned(counts,y,n=1,LAMBDA=1e-3)
-
-pred <- orm_predict(counts,w)
-tibble(pred,y) %>% ggplot(aes(x=y,y=pred)) + geom_boxplot()
-enframe(w) %>% ggplot(aes(y=name,x=value)) + geom_col() + ggtitle("Linear model weights")
+w <- lineage::orm_fit_pruned(assay(trn,"counts"),trn$timepoint,n=25,LAMBDA=1e-3)
+tst$orm_pred <- orm_predict(assay(tst,"counts"),w)
 ```
+
+The above code shows how to fit an ORM model on a training set.
+`LAMBDA` regularization parameters is a positive value controlling the "complexity" 
+of the model and should be tuned for your data. Low `LAMBDA` tends to produce 
+over-fitted models on the data, while high `LAMBDA` tends to produce 
+non-specific model. 
+
+After fitting, 25 genes with highest (resp. lowest) linear coefficients are kept 
+(controlled by parameter `n`), and a second normalization and fitting pass 
+is performed.
+
 
 
 ## Lineage with 

@@ -1,0 +1,102 @@
+---
+title: "Pseudotime"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{lineage}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+```{r message=FALSE}
+library(lineage)
+library(tidyverse)
+library(SummarizedExperiment)
+```
+
+
+# Retreive a developmental dataset from NCBI, and split into a train and test set
+
+```{r}
+# Return NCBI dataset GSE101986 in a SummarizedExperiment object
+GSE101986 <- function() {
+	d <- read_tsv('https://ftp.ncbi.nlm.nih.gov/geo/series/GSE101nnn/GSE101986/suppl/GSE101986_Gene_Counts.txt.gz')
+	counts <- select(d,!1:status) %>% as.matrix()
+	rownames(counts) <- make.unique(d$external_gene_name)
+	meta <- tibble(
+		timepoint = colnames(counts) %>% str_replace("\\.[0-9]","") %>% as_factor(),
+		replicate = colnames(counts) %>% str_replace(".*\\.","")
+	)
+	SummarizedExperiment(
+		List(counts=counts),
+		rowData = select(d,1:status) %>% dplyr::rename(ensembl_id = ...1),
+		colData = meta
+	)
+}
+```
+
+
+
+# Load data and split in train/test sets
+
+```{r message=FALSE}
+# Get the transcriptomic dataset and normalize it (for expression display only)
+x <- GSE101986() 
+x <- scuttle::logNormCounts(x)
+
+# Split into train and test sets
+trn <- x[,x$replicate=="1"] 
+tst <- x[,x$replicate!="1"]
+```
+
+
+# Fit Ordinal Regression Model
+
+```{r message=FALSE}
+# Fit a linear ORM model in 2 pass on the train set
+w <- lineage::orm_fit_pruned(assay(trn,"counts"),trn$timepoint,n=10,LAMBDA=1e-3)
+
+# Predict test set with the ORM
+tst$orm_pred <- orm_predict(assay(tst,"counts"),w)
+```
+
+
+## ORM linear weights
+
+```{r fig.height=6, fig.width=4}
+enframe(w) %>% 
+	mutate(name=fct_reorder(name,value)) %>% 
+	ggplot(aes(y=name,x=value)) + 
+		geom_col() + 
+		ggtitle("Linear model weights")
+```
+
+## Model predictions on test set
+
+```{r fig.height=3, fig.width=5}
+colData(tst) %>% as_tibble() %>% ggplot(aes(x=timepoint,y=orm_pred)) + geom_point()
+```
+
+
+## Expression profile of model genes on the test set
+
+```{r fig.height=8, fig.width=8}
+assay(tst[names(w)],"logcounts") %>% 
+	as_tibble(rownames="symbol") %>% 
+	pivot_longer(!symbol,names_to="sample",values_to="logcounts") %>% 
+	left_join(as_tibble(colData(tst),rownames="sample"),by="sample") %>% 
+	mutate(symbol = fct_relevel(symbol,names(w))) %>% 
+	ggplot(aes(x=timepoint,y=logcounts,group=symbol)) + 
+		geom_line() +
+		facet_wrap(~symbol,scale="free_y")
+```
+
+
+

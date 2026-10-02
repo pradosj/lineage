@@ -128,7 +128,7 @@ orm_fit <- function(counts,y,C=NULL,normalize_fun=orm_lognorm_counts,...) {
 #' w <- orm_fit_pruned(counts,y,n=1,LAMBDA=1e-3)
 #' pred <- orm_predict(counts,w)
 #' tibble(pred,y) %>% ggplot(aes(x=y,y=pred)) + geom_boxplot()
-orm_fit_pruned <- function(counts,...,n=10) {
+orm_fit_pruned <- function(counts,...,n=25L) {
 	w <- orm_fit(counts,...)
 	counts <- counts[c(names(utils::head(w,n=n)),names(utils::tail(w,n=n))),,drop=FALSE]
 	w2 <- orm_fit(counts=counts,...)
