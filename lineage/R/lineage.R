@@ -67,8 +67,7 @@ lineage_graph_build <- function(pseudotime,identity_scores) {
 			lm_coefs = list(lsfit(.data$pseudotime,.data$identity_scores) |> coef())
 		)
 
-	edges <- tidyr::expand_grid(from=nodes$identity_label,to=nodes$identity_label) %>%
-		dplyr::filter(from!=to)
+	edges <- tidyr::expand_grid(from=nodes$identity_label,to=nodes$identity_label)
 	g <- tidygraph::tbl_graph(nodes,edges) %>%
 		tidygraph::activate(edges) %>%
 		mutate(
@@ -95,6 +94,7 @@ lineage_graph_build <- function(pseudotime,identity_scores) {
 lineage_graph_prune <- function(g,n=1L) {
 	g <- g %>%
 		activate("edges") %>%
+		filter(from!=to) %>%
 		filter(.data$target_cells.source_id.slope < .data$target_cells.target_id.slope) %>%
 		group_by(to) %>%
 		slice_max(order_by=.data$target_cells.branching.pseudotime,n=n,with_ties = FALSE) %>%
@@ -139,45 +139,42 @@ plot_lineage_incidence_matrix <- function(g,pseudotime=NULL,identity_scores=NULL
 		) %>%
 		as_tibble("edges")
 
+	p <- E %>%
+		mutate(
+			facet_x = str_c(.data$to_identity_label,"\ncells"),
+			facet_y = str_c(.data$from_identity_label,"\nidentity")
+		) %>%
+		ggplot() +
+		facet_grid(facet_y ~ facet_x)
+
 	if (!is.null(cells)) {
-		cells <- E %>%
+		pw_cells <- E %>%
 			select("from_identity_label","to_identity_label") %>%
 			left_join(cells,by=c("to_identity_label"="identity_label"),relationship = "many-to-many") %>%
 			mutate(from_identity_score = identity_scores[cbind(seq_along(.data$from_identity_label),match(.data$from_identity_label,colnames(identity_scores)))]) %>%
 			mutate(
-				facet_x = str_c(.data$to_identity_label,"\nTARGET cells"),
-				facet_y = str_c("vs ",.data$from_identity_label,"\nSOURCE id")
+				facet_x = str_c(.data$to_identity_label,"\ncells"),
+				facet_y = str_c(.data$from_identity_label,"\nidentity")
 			) %>%
 			select(-identity_scores)
+		p <- p +
+			geom_point(aes(x=.data$pseudotime,y=.data$from_identity_score),data=pw_cells,size=0.3,color="grey")
+	} else {
+		xlim <- range(
+			g %>% activate("nodes") %>% pull("min_pseudotime"),
+			g %>% activate("nodes") %>% pull("max_pseudotime")
+		)
+		p <- p + scale_x_continuous(limits = xlim)
 	}
 
-	p <- E %>%
-		mutate(
-			facet_x = str_c(.data$to_identity_label,"\nTARGET cells"),
-			facet_y = str_c("vs ",.data$from_identity_label,"\nSOURCE id")
-		) %>%
-		ggplot() +
-			facet_grid(facet_y ~ facet_x)
-		if (!is.null(cells)) {
-			p <- p +
-				geom_point(aes(x=.data$pseudotime,y=.data$from_identity_score,color="SOURCE identity (should decrease with time)"),data=cells,size=0.3) +
-				geom_point(aes(x=.data$pseudotime,y=.data$identity_score,color="TARGET identity (should increase with time)"),data=cells,size=0.3)
-		} else {
-			xlim <- range(
-				g %>% activate("nodes") %>% pull("min_pseudotime"),
-				g %>% activate("nodes") %>% pull("max_pseudotime")
-			)
-			p <- p + scale_x_continuous(limits = xlim)
-		}
-		p <- p +
-			geom_abline(aes(slope=.data$target_cells.source_id.slope,intercept = .data$target_cells.source_id.intercept),linewidth=1,color="red") +
-			geom_abline(aes(slope=.data$target_cells.target_id.slope,intercept = .data$target_cells.target_id.intercept),linewidth=1,color="blue") +
-			xlab("pseudotime") +
-			ylab("identity score") +
-			labs(colour="") +
-			ggtitle("Evolution of identity scores over pseudotime on TARGET cells") +
-			theme_bw() +
-			theme(legend.position="top")
+	p <- p +
+		geom_abline(aes(slope=.data$target_cells.target_id.slope,intercept = .data$target_cells.target_id.intercept),linewidth=1,color="blue") +
+		geom_abline(aes(slope=.data$target_cells.source_id.slope,intercept = .data$target_cells.source_id.intercept),linewidth=1,color="red",data=~filter(.,to_identity_label!=from_identity_label)) +
+		xlab("pseudotime") +
+		ylab("identity score") +
+		ggtitle("Evolution of identity scores over pseudotime split by identity") +
+		theme_bw() +
+		theme(legend.position="top")
 	p
 }
 

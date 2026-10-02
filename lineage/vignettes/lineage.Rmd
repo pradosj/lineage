@@ -32,7 +32,7 @@ identity_scores <- matrix(runif(10000),1000,dimnames=list(NULL,LETTERS[1:10]))
 
 Build fully connected lineage graph and fit linear models to the identity data along pseudotime
 
-```{r}
+```{r fig.height=6, fig.width=6}
 g <- lineage_graph_build(pseudotime,identity_scores)
 plot_lineage_graph(g) + coord_equal()
 ```

@@ -33,5 +33,6 @@ Imports:
     tidygraph,
     ggraph,
     Matrix,
-    FNN
+    FNN,
+    bmrm
 
