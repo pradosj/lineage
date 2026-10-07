@@ -10,7 +10,7 @@ helper functions for pseudotime analysis with linear Ordinal Regression Model (O
 
 ``` r
 devtools::install_github("pradosj/bmrm/bmrm")
-devtools::install_github("BioinfoSupport/lineage/lineage")
+devtools::install_github("pradosj/lineage/lineage")
 ```
 
 
