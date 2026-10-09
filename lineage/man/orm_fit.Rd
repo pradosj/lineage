@@ -4,7 +4,14 @@
 \alias{orm_fit}
 \title{Normalize an expression matrix and fit an ORM model}
 \usage{
-orm_fit(counts, y, C = NULL, normalize_fun = orm_lognorm_counts, ...)
+orm_fit(
+  counts,
+  y,
+  C = NULL,
+  normalize_fun = orm_lognorm_counts,
+  strata = NULL,
+  ...
+)
 }
 \arguments{
 \item{counts}{gene x sample expression matrix}
@@ -12,9 +19,12 @@ orm_fit(counts, y, C = NULL, normalize_fun = orm_lognorm_counts, ...)
 \item{y}{A factor defining the ordinal labels for each sample in x}
 
 \item{C}{Cost matrix to penalize miss-predictions between labels, C[i,j]
-being the cost for predicting label i instead of label j}
+being the cost for predicting label i instead of label j.
+When NULL, it is initialized with a call to `orm_balanced_cost_matrix()`}
 
 \item{normalize_fun}{Normalization function to use before fitting}
+
+\item{strata}{when C is NULL, passed to `orm_balanced_cost_matrix()`}
 
 \item{...}{additional parameters are passed to `orm_fit`}
 }

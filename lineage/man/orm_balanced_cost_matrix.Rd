@@ -4,13 +4,13 @@
 \alias{orm_balanced_cost_matrix}
 \title{Compute a balanced cost matrix with optional grouping}
 \usage{
-orm_balanced_cost_matrix(y, group = NULL)
+orm_balanced_cost_matrix(y, strata = NULL)
 }
 \arguments{
 \item{y}{a factor of target labels}
 
-\item{group}{a factor of sample groups whose length match length(y). It is used
-to update the cost matrix so that inter-group penalties vanish.}
+\item{strata}{a factor of sample groups whose length match length(y). It is used
+to update the cost matrix so that inter-strata penalties vanish.}
 }
 \description{
 Grouping allow to train a single linear model performant on distinct set of samples like Male/Female

@@ -6,29 +6,29 @@
 #' @importFrom tidyr pivot_wider
 NULL
 
-utils::globalVariables(c("group.x", "group.y", "y.x", "y.y", "n.x", "n.y"))
+utils::globalVariables(c("strata.x", "strata.y", "y.x", "y.y", "n.x", "n.y"))
 
 #' Compute a balanced cost matrix with optional grouping
 #'
 #' Grouping allow to train a single linear model performant on distinct set of samples like Male/Female
 #'
 #' @param y a factor of target labels
-#' @param group a factor of sample groups whose length match length(y). It is used
-#'        to update the cost matrix so that inter-group penalties vanish.
+#' @param strata a factor of sample groups whose length match length(y). It is used
+#'        to update the cost matrix so that inter-strata penalties vanish.
 #' @export
 #' @examples
 #' orm_balanced_cost_matrix(iris$Species)
-orm_balanced_cost_matrix <- function(y,group=NULL) {
-	n <- tibble(y,group) %>%
+orm_balanced_cost_matrix <- function(y,strata=NULL) {
+	n <- tibble(y,strata) %>%
 		group_by(across(everything())) %>%
 		dplyr::count() %>%
-		mutate(lab = str_c(group,y,sep = "__")) %>%
-		mutate(group = group %||% "all") %>%
-		arrange(group,y)
+		mutate(lab = str_c(strata,y,sep = "__")) %>%
+		mutate(strata = strata %||% "all") %>%
+		arrange(strata,y)
 
 	C <- cross_join(n,n) %>%
-		filter(group.x==group.y) %>%
-		mutate(n = if_else((group.x==group.y) & (as.integer(y.x)<as.integer(y.y)),n.x*n.y,0)) %>%
+		filter(strata.x==strata.y) %>%
+		mutate(n = if_else((strata.x==strata.y) & (as.integer(y.x)<as.integer(y.y)),n.x*n.y,0)) %>%
 		mutate(loss = if_else(n>0,sum(n)/n/sum(n>0),0)) %>%
 		pivot_wider(id_cols="lab.x",names_from = "lab.y",values_from = "loss",values_fill=0) %>%
 		column_to_rownames("lab.x") %>%
@@ -36,7 +36,7 @@ orm_balanced_cost_matrix <- function(y,group=NULL) {
 
 	list(
 		C = C[n$lab,n$lab],
-		y = factor(str_c(group,y,sep="__"),n$lab)
+		y = factor(str_c(strata,y,sep="__"),n$lab)
 	)
 }
 
@@ -80,8 +80,10 @@ orm_predict <- function(counts,w,normalize_fun=orm_lognorm_counts) {
 #' @param counts gene x sample expression matrix
 #' @param y A factor defining the ordinal labels for each sample in x
 #' @param C Cost matrix to penalize miss-predictions between labels, C[i,j]
-#'        being the cost for predicting label i instead of label j
+#'        being the cost for predicting label i instead of label j.
+#'        When NULL, it is initialized with a call to `orm_balanced_cost_matrix()`
 #' @param normalize_fun Normalization function to use before fitting
+#' @param strata when C is NULL, passed to `orm_balanced_cost_matrix()`
 #' @param ... additional parameters are passed to `orm_fit`
 #' @return linear model weights
 #' @export
@@ -93,9 +95,9 @@ orm_predict <- function(counts,w,normalize_fun=orm_lognorm_counts) {
 #' w <- orm_fit(counts,y,LAMBDA=1e-3)
 #' pred <- orm_predict(counts,w)
 #' tibble(pred,y) %>% ggplot(aes(x=y,y=pred)) + geom_boxplot()
-orm_fit <- function(counts,y,C=NULL,normalize_fun=orm_lognorm_counts,...) {
+orm_fit <- function(counts,y,C=NULL,normalize_fun=orm_lognorm_counts,strata=NULL,...) {
 	if (is.null(C)) {
-		Cy <- orm_balanced_cost_matrix(y)
+		Cy <- orm_balanced_cost_matrix(y,strata=strata)
 	} else {
 		Cy <- list(C=C,y=y)
 	}

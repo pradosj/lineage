@@ -19,8 +19,8 @@ devtools::install_github("pradosj/lineage/lineage")
 ## Pseudotime analysis with linear Ordinal Regression Model (ORM)
 
 ``` r
-w <- lineage::orm_fit_pruned(assay(trn,"counts"),trn$timepoint,n=25,LAMBDA=1e-3)
-tst$orm_pred <- lineage::orm_predict(assay(tst,"counts"),w)
+w <- lineage::orm_fit_pruned(counts(trn),trn$timepoint,n=25,LAMBDA=1e-3,strata=trn$org)
+tst$orm_pred <- lineage::orm_predict(counts(tst),w)
 ```
 
 The above code shows how to fit an ORM model on a training set.
@@ -33,6 +33,10 @@ Because `orm_fit_pruned` version is called here, after a first ORM fitting, 25
 genes with highest (resp. lowest) linear coefficients are kept 
 (controlled by pruning parameter `n`). Then a second normalization and fitting pass 
 is performed by the function.
+
+The optional parameter `strata` allows to train a single linear model on multiple 
+partitions of the training data by adjusting the cost matrix.
+
 
 
 ## Lineage analysis 
