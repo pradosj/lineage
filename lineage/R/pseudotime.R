@@ -30,7 +30,7 @@ orm_balanced_cost_matrix <- function(y,group=NULL) {
 		filter(group.x==group.y) %>%
 		mutate(n = if_else((group.x==group.y) & (as.integer(y.x)<as.integer(y.y)),n.x*n.y,0)) %>%
 		mutate(loss = if_else(n>0,1/n,0)) %>%
-		pivot_wider(id_cols="lab.x",names_from = "lab.y",values_from = "loss") %>%
+		pivot_wider(id_cols="lab.x",names_from = "lab.y",values_from = "loss",values_fill=0) %>%
 		column_to_rownames("lab.x") %>%
 		as.matrix()
 	C <- C*(sum(n$n)^2 - sum(n$n^2))/2
