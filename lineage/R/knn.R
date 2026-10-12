@@ -46,9 +46,9 @@ row_order <- function(m) {
 #'
 #' @param bin integer matrix of bins
 #' @param nbins total number of bin
-#'
 #' @return matrix of size (n x nbins) with bin counts for each row
 #' @export
+#' @importFrom rlang rep_along
 row_tabulate <- function(bin,nbins=max(1,bin,na.rm=TRUE)) {
 	bin <- as.matrix(bin)
 	Matrix::sparseMatrix(
@@ -73,8 +73,8 @@ row_tabulate <- function(bin,nbins=max(1,bin,na.rm=TRUE)) {
 #' ref_coords <- matrix(runif(300*2),ncol=2)
 #' ref_labels <- gl(3,100,labels = letters[1:3])
 #' qry_coords <- matrix(runif(1000*2),ncol=2)
-#' knn <- BiocNeighbors::queryKNN(ref_coords,qry_coords,k=25)
-#' knn_summary_stats(knn$index,ref_labels)
+#' knn <- FNN::knnx.index(ref_coords,qry_coords,k=25)
+#' knn_summary_stats(knn,ref_labels)
 knn_summary_stats <- function(knn_index,ref_labels) {
 	ref_labels <- as_factor(ref_labels)
 	n <- as.integer(ref_labels)[knn_index] |>

@@ -15,7 +15,9 @@ Suggests:
     knitr,
     rmarkdown,
     ggridges,
-    tidyverse
+    tidyverse,
+    scuttle,
+    SummarizedExperiment
 VignetteBuilder: knitr
 License: GPL-3
 Encoding: UTF-8

@@ -22,6 +22,6 @@ Compute summary statistics for knn classifiers
 ref_coords <- matrix(runif(300*2),ncol=2)
 ref_labels <- gl(3,100,labels = letters[1:3])
 qry_coords <- matrix(runif(1000*2),ncol=2)
-knn <- BiocNeighbors::queryKNN(ref_coords,qry_coords,k=25)
-knn_summary_stats(knn$index,ref_labels)
+knn <- FNN::knnx.index(ref_coords,qry_coords,k=25)
+knn_summary_stats(knn,ref_labels)
 }

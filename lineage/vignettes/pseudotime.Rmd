@@ -2,7 +2,7 @@
 title: "Pseudotime"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{lineage}
+  %\VignetteIndexEntry{pseudotime}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
