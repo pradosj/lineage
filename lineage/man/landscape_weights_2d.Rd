@@ -19,7 +19,7 @@ landscape_weights_2d(x, y, grid = grid_2d(x, y), k = 5, sd = 1)
 }
 \value{
 a list of 2 matrices `fwd` and `rev`. That can be used to smooth gene expression signals.
-        If m is a (gene x cells) matrix, the smoothed signal estimate at given timepoints is obtained
+        If m is a (gene x cells) matrix, the smoothed signal estimate at given grid points is obtained
         with: m |> tcrossprod(w$fwd). The smoothed (gene x cells) expression matrix can be obtained
         with: m |> tcrossprod(w$fwd) |> tcrossprod(w$rev)
 }

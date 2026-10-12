@@ -30,6 +30,7 @@ Imports:
     ggplot2,
     dplyr,
     tibble,
+    forcats,
     tidygraph,
     ggraph,
     Matrix,

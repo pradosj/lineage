@@ -61,7 +61,7 @@ grid_2d <- function(x,y,nx=30,ny=30,filter=TRUE) {
 #' @param k number of nearest neighboring grid points to consider for each cell
 #' @param sd standard deviation of the gaussian kernel
 #' @return a list of 2 matrices `fwd` and `rev`. That can be used to smooth gene expression signals.
-#'         If m is a (gene x cells) matrix, the smoothed signal estimate at given timepoints is obtained
+#'         If m is a (gene x cells) matrix, the smoothed signal estimate at given grid points is obtained
 #'         with: m |> tcrossprod(w$fwd). The smoothed (gene x cells) expression matrix can be obtained
 #'         with: m |> tcrossprod(w$fwd) |> tcrossprod(w$rev)
 #' @export
